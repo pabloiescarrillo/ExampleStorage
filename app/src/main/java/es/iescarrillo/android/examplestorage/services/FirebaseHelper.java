@@ -10,9 +10,9 @@ public class FirebaseHelper {
 
     public static FirebaseStorage initializeFirebaseStorage(Context context){
         FirebaseOptions options = new FirebaseOptions.Builder()
-                .setApplicationId("APP_ID")
-                .setApiKey("APP_KEY")
-                .setStorageBucket("URL_STORAGE")
+                .setApplicationId("1:98573484667:android:f1dd888892d6613745d8de")
+                .setApiKey("AIzaSyDjfUJ_-bOrb09xXqYDAXxeK_RHjGYIbuo")
+                .setStorageBucket("gs://ejemplobbddfirebase.appspot.com")
                 .build();
 
         FirebaseApp appFirebaseStorage = FirebaseApp.getInstance();
