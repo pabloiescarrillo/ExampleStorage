@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">ExampleStorage</string>
+    <string name="error_firebase">Error firebase</string>
+    <string name="name">Name</string>
+    <string name="surname">Surname</string>
+    <string name="save">Save</string>
+    <string name="back">Cancel</string>
+    <string name="phone">Phone</string>
+    <string name="save_successfully">Customer saved successfully</string>
+    <string name="error">Error</string>
+</resources>

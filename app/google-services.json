@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "98573484667",
+    "firebase_url": "https://ejemplobbddfirebase-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "ejemplobbddfirebase",
+    "storage_bucket": "ejemplobbddfirebase.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:98573484667:android:f1dd888892d6613745d8de",
+        "android_client_info": {
+          "package_name": "es.iescarrillo.android.examplestorage"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDjfUJ_-bOrb09xXqYDAXxeK_RHjGYIbuo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1000104735618",
+    "firebase_url": "https://fir-pablo-fe300-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "fir-pablo-fe300",
+    "storage_bucket": "fir-pablo-fe300.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1000104735618:android:cc72e6d8ab1722796b959b",
+        "android_client_info": {
+          "package_name": "es.iescarrillo.android.examplestorage"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1000104735618-gv6pe0us39far0fdvg68glh12ablser1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "es.iescarrillo.android.examplestorage",
+            "certificate_hash": "917c98a67dac26b286e58691de45bf8931a2d08f"
+          }
+        },
+        {
+          "client_id": "1000104735618-4hf8egu7vqom117qdgopfovc3hp7ilmm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDqYevj_GwakAqS_DsrpkEH7PocoC9weK8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1000104735618-4hf8egu7vqom117qdgopfovc3hp7ilmm.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
