@@ -12,14 +12,14 @@ public class FirebaseHelper {
         FirebaseOptions options = new FirebaseOptions.Builder()
                 .setApplicationId("1:98573484667:android:f1dd888892d6613745d8de")
                 .setApiKey("AIzaSyDjfUJ_-bOrb09xXqYDAXxeK_RHjGYIbuo")
-                .setStorageBucket("gs://ejemplobbddfirebase.appspot.com")
+                .setStorageBucket("ejemplobbddfirebase.appspot.com")
                 .build();
 
-        FirebaseApp appFirebaseStorage = FirebaseApp.getInstance();
+        FirebaseApp appFirebaseStorage = null;
         try{
-            appFirebaseStorage = FirebaseApp.initializeApp(context, options);
+            appFirebaseStorage = FirebaseApp.initializeApp(context, options, "ejemplobbddfirebase");
         }catch (IllegalStateException e){
-
+            appFirebaseStorage = FirebaseApp.getInstance("ejemplobbddfirebase");
         }
 
         return FirebaseStorage.getInstance(appFirebaseStorage);

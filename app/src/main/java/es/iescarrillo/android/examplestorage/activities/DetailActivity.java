@@ -1,16 +1,15 @@
 package es.iescarrillo.android.examplestorage.activities;
 
-import static com.google.common.io.Files.getFileExtension;
-
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -23,6 +22,8 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -30,41 +31,39 @@ import androidx.core.view.WindowInsetsCompat;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.util.UUID;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.Locale;
 
 import es.iescarrillo.android.examplestorage.R;
 import es.iescarrillo.android.examplestorage.models.Customer;
 import es.iescarrillo.android.examplestorage.services.CustomerService;
-import okhttp3.MediaType;
-import okhttp3.MultipartBody;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+import es.iescarrillo.android.examplestorage.services.FirebaseHelper;
 
 public class DetailActivity extends AppCompatActivity {
 
     private Customer customer;
     private EditText etName, etSurname, etPhone;
     private ImageView ivPhoto;
-    private Button btnSave, btnCancel;
+    private Button btnSave, btnCancel, btnCamera;
     private CustomerService customerService;
 
     private ActivityResultLauncher<Intent> pickImageLauncher;
+    private ActivityResultLauncher<Intent> cameraLauncher;
+
+    private static final int CAMERA_PERMISSION_REQUEST_CODE = 100;
 
     // Creamos la referencia a Firebase Storage
     private StorageReference storageReference;
     private Uri imageUri;
-
-    private static final String SUPABASE_URL = "https://gkypzpirjypdyalasznl.supabase.co/storage/v1/object/buckets/images";
-    private static final String SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdreXB6cGlyanlwZHlhbGFzem5sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg1ODY4MTcsImV4cCI6MjA1NDE2MjgxN30.q3EMJD6AYymxbOOX6waIaFK_jOwxEHIC0aUyKJQfeQw";
+    private Uri photoUri;
+    private File photoFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,10 +107,35 @@ public class DetailActivity extends AppCompatActivity {
                     }
                 });
 
+        cameraLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK) {
+                        if (photoUri != null) {
+                            // Cargar imagen en el ImageView con Picasso
+                            Picasso.get().load(photoUri).into(ivPhoto);
+                        } else {
+                            Toast.makeText(this, "Error al obtener la imagen", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                }
+        );
+
         ivPhoto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 selectImage();
+            }
+        });
+
+        btnCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (checkCameraPermission()) {
+                    openCamera();
+                } else {
+                    requestCameraPermission();
+                }
             }
         });
 
@@ -123,12 +147,13 @@ public class DetailActivity extends AppCompatActivity {
         etPhone = findViewById(R.id.etPhone);
         btnSave = findViewById(R.id.btnSave);
         btnCancel = findViewById(R.id.btnCancel);
+        btnCamera = findViewById(R.id.btnCamera);
         ivPhoto = findViewById(R.id.ivPhoto);
 
         customerService = new CustomerService(getApplicationContext());
 
         // Inicializamos la referencia a nuestra aplicación Firebase Storage
-        storageReference = FirebaseStorage.getInstance().getReference().child("customers/");
+        storageReference = FirebaseHelper.initializeFirebaseStorage(getApplicationContext()).getReference().child("customers");
     }
 
     private void loadCustomer(){
@@ -144,16 +169,16 @@ public class DetailActivity extends AppCompatActivity {
     // Médoto para cargar al imagen en Firebase Storage
     private void uploadImage(String id){
         /* Llamamos al método getImagenUri creado por nosotros para obtener la URI de una imagen
-        almacenada en un ImagenView, le pasamos también el id del superhérore ya que el nombre
-        de la imagen almacenada se identificará con el id del superhérore
+        almacenada en un ImagenView, le pasamos también el id del customer ya que el nombre
+        de la imagen almacenada se identificará con el id del customer
         * */
         Uri file = getImageUri(this, ivPhoto, id);
 
         // Obtenemos la nueva referencia
-        StorageReference storageRefSuperhero = storageReference.child(id);
+        StorageReference storageRefCustomer = storageReference.child(id);
 
         // Llamamos al método putFile, el cuál recibe un objeto URI, el que hemos obtenido anteriormente
-        storageRefSuperhero.putFile(file).addOnFailureListener(new OnFailureListener() {
+        storageRefCustomer.putFile(file).addOnFailureListener(new OnFailureListener() {
             // Método que se ejecutará si se produce un fallo
             @Override
             public void onFailure(@NonNull Exception exception) {
@@ -211,12 +236,52 @@ public class DetailActivity extends AppCompatActivity {
         pickImageLauncher.launch(intent);
     }
 
+    // Abrir la cámara y guardar la foto en un archivo
+    private void openCamera() {
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            try {
+                photoFile = createImageFile();
+                if (photoFile != null) {
+                    photoUri = FileProvider.getUriForFile(this, "es.iescarrillo.android.examplestorage.fileprovider", photoFile);
+                    intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+                    cameraLauncher.launch(intent);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                Toast.makeText(this, "Error al crear el archivo de imagen", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    // Crear un archivo temporal para guardar la imagen
+    private File createImageFile() throws IOException {
+        String timeStamp = LocalDateTime.now().toString();
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(null);
+        return File.createTempFile(imageFileName, ".jpg", storageDir);
+    }
+
+    // Verificar permiso de la cámara
+    private boolean checkCameraPermission() {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
+    // Solicitar permiso de la cámara
+    private void requestCameraPermission() {
+        requestPermissions(new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST_CODE);
+    }
+
+    // Manejar la respuesta del usuario
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 101 && resultCode == RESULT_OK && data != null) {
-            imageUri = data.getData();
-            Picasso.get().load(imageUri).into(ivPhoto);
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 100 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            openCamera();
+        } else {
+            Toast.makeText(this, "Permiso de cámara denegado", Toast.LENGTH_SHORT).show();
         }
     }
 

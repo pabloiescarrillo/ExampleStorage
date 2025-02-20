@@ -25,6 +25,18 @@
             android:src="@mipmap/ic_launcher"
             tools:ignore="SpeakableTextPresentCheck" />
 
+        <Button
+            android:id="@+id/btnCamera"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/from_camera"
+            android:textSize="24sp"
+            android:layout_marginRight="20dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginBottom="30dp"
+            android:backgroundTint="@color/anthracite"
+            android:layout_gravity="center_horizontal"/>
+
         <EditText
             android:id="@+id/etName"
             android:layout_width="match_parent"
